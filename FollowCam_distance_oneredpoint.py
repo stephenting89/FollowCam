@@ -53,13 +53,17 @@ def people_floor(features_number, features, height_from_floor):
 		status = True
 		return status, sum/m
 
+def people_floor_test(Y, height_from_floor):	
+	sum = Y + height_from_floor[0]
+	status = True
+	return status, sum
+		
+def scaled_people_floor_test(Y, height_from_floor):
+	return people_floor_test(Y, height_from_floor)
+	
+		
 def scaled_people_floor(features_number, features, height_from_floor):
-	print ("features_number: " + str(type(features_number)))
-	print ("features: " + str(type(features)))
-	print ("HOF: " + str(type(height_from_floor)))
-	print("features_number BEFORE " + str(features_number))
 	status, y = people_floor(features_number, features, height_from_floor)
-	print("features_number AFTER " + str(features_number))
 
 	if not status:
 		return status, y
@@ -115,7 +119,8 @@ def find_features(image, rectangle, features_num):
 		d = dist2B.pop(0)
 		height_from_floor.append(d)
 
-	return features, height_from_floor
+	#return features, height_from_floor
+	return features, (y2-y1)
 
 def main():
 	try:
@@ -245,8 +250,9 @@ def main():
   						for i in range(features_number):
   							if status[i][0] == 1:
   								new_feature_number += 1
-  								temp_distance.append(height_from_floor[i])
-
+  								#temp_distance.append(height_from_floor[i])
+						
+						temp_distance.append(height_from_floor-Y); 
 						print (temp_distance)
   						height_from_floor = []
 
@@ -271,7 +277,8 @@ def main():
   	 					raise e
 
   	 				#-------Compute Distance --------------------
-  	 				status, v = scaled_people_floor(features_number, features, height_from_floor)
+  	 				#status, v = scaled_people_floor(features_number, features, height_from_floor)
+					status, v = scaled_people_floor_test(Y, height_from_floor)
 
   	 				if status:
   	 					distance = compute_distance(v)
