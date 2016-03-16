@@ -14,12 +14,17 @@ from picamera.array import PiRGBArray
 from picamera import PiCamera
 
 #Address for I2C, needs to match arduino
-address = 0x06
-bus = smbus.SMBus(1)
+#address = 0x06
+#bus = smbus.SMBus(1)
 
 #------------Controller Parameters ------------------
 threshold_percent = 0.1
 #----------------------------------------------------
+
+#======camera calibration parameters============
+fku = 1000;
+v0 = 100;
+h = 1;
 
 #features_number = 0
 height_from_floor  = list()
@@ -36,6 +41,7 @@ feature_params = dict( maxCorners = 100,
 
 def people_floor(features_number, features, height_from_floor):
 	sum = 0
+	m = 0
 	for i in range(features_number):
 		sum += features[i][0][1] + height_from_floor[i]
 		m += 1
@@ -48,7 +54,7 @@ def people_floor(features_number, features, height_from_floor):
 		return status, sum/m
 
 def scaled_people_floor(features_number, features, height_from_floor):
-	status, y = people_floor(features, height_from_floor)
+	status, y = people_floor(features_number, features, height_from_floor)
 
 	if not status:
 		return -1
@@ -107,7 +113,7 @@ def find_features(image, rectangle, features_num):
 	return features, height_from_floor
 
 def main():
-	try:          
+	try:
   		# initialize leds
   		gpio.setmode(gpio.BCM)
   		gpio.setup(17, gpio.OUT)
@@ -134,7 +140,7 @@ def main():
   		for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 
   			if not detected: # detection block
-  			       	gpio.output(17, False)
+  				gpio.output(17, False)
   				Threshold = 0
   				unchangedPointsMap = dict()
 
@@ -216,44 +222,37 @@ def main():
   						X = arr_x[mid]
   						mid = len(arr_y)/2
   						Y = arr_y[mid]
-  					
+              
   						print(X)
-  						#bus.write_i2c_block_data(address, X & 0xff, ((i >> 8) & 0xff,))
-              					#bus.write_byte_data(address, int(X) & 0xff, (int(X) >> 8) & 0xff)
-                                                Q = int(X)
-                                                #bus.write(address, X)
-                                                msb = Q/256
-                                                lsb = Q%256       
-                                                bus.write_i2c_block_data(address, msb, [lsb]) 
+
   						new_feature_number = 0
   						temp_set_number = []
   						temp_distance = []
   						j = 0
 
-  						# print ("Height_from_floor" + str(height_from_floor))
-  						# print ("num" + str(features_number))
-  						# print ("Status" + str(status))
-  						# print ("Status[0]   " + str(status[0]))
-  						# print ("Status[1]   " + str(status[1]))
-  						# print ("Status[0][0]   " + str(status[0][0]))
+  						print ("Height_from_floor" + str(height_from_floor))
+  						print ("num" + str(features_number))
+  						print ("Status" + str(status))
+  						print ("Status[0]   " + str(status[0]))
+  						print ("Status[1]   " + str(status[1]))
+  						print ("Status[1][0]   " + str(status[1][0]))
   					
   						for i in range(features_number):
   							if status[i][0] == 1:
   								new_feature_number += 1
-  								# temp_distance[j] = height_from_floor[i]
-  								j += 1
-  					
-  						# height_from_floor = []
+  								temp_distance.append(height_from_floor[i])
 
-  						# print ("Here")
+						print (temp_distance)
+  						height_from_floor = []
 
-  						# for i in range(features_number):
-  						# 	height_from_floor.append(temp_distance[i])
+  						print ("Here")
 
-  						# print ("Here2")
+  						for i in range(features_number):
+  						 	height_from_floor.append(temp_distance[i])
+
+  						print ("Here2")
 
   						features_number = new_feature_number
-  						#print("Features_num" + str(features_number))
   						features = []
 
   						for i in range(features_number):
@@ -267,11 +266,11 @@ def main():
   	 					raise e
 
   	 				#-------Compute Distance --------------------
-  	 				# status, v = scaled_people_floor(features_number, features, height_from_floor)
+  	 				status, v = scaled_people_floor(features_number, features, height_from_floor)
 
-  	 				# if status:
-  	 				# 	distance = compute_distance(v)
-  	 				# 	print (distance)
+  	 				if status:
+  	 					distance = compute_distance(v)
+  	 					print (distance)
 
   	 				#-------Showing Points ------------------------
   	 				for i in range(features_number):
@@ -294,7 +293,7 @@ def main():
   		
   			if key == ord("w"):
   				break
-	except:
+  	except KeyboardInterrupt, SystemExit:
     		gpio.output(27, False)
 		gpio.output(17, False)
 		camera.release()

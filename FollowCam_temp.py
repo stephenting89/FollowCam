@@ -107,7 +107,7 @@ def find_features(image, rectangle, features_num):
 	return features, height_from_floor
 
 def main():
-	try:          
+	try:
   		# initialize leds
   		gpio.setmode(gpio.BCM)
   		gpio.setup(17, gpio.OUT)
@@ -134,7 +134,7 @@ def main():
   		for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 
   			if not detected: # detection block
-  			       	gpio.output(17, False)
+  				gpio.output(17, False)
   				Threshold = 0
   				unchangedPointsMap = dict()
 
@@ -221,9 +221,8 @@ def main():
   						#bus.write_i2c_block_data(address, X & 0xff, ((i >> 8) & 0xff,))
               					#bus.write_byte_data(address, int(X) & 0xff, (int(X) >> 8) & 0xff)
                                                 Q = int(X)
-                                                #bus.write(address, X)
                                                 msb = Q/256
-                                                lsb = Q%256       
+                                                lsb = Q%256
                                                 bus.write_i2c_block_data(address, msb, [lsb]) 
   						new_feature_number = 0
   						temp_set_number = []
@@ -294,7 +293,7 @@ def main():
   		
   			if key == ord("w"):
   				break
-	except:
+  	except KeyboardInterrupt, SystemExit:
     		gpio.output(27, False)
 		gpio.output(17, False)
 		camera.release()
